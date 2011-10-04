@@ -10,11 +10,10 @@ def get_links(soup_doc):
 	for td in titleTDs:
 		if td.a!=None:
 			#risky figure this out
-			contents=td.a.contents[0].__unicode__()
-			contents=contents.encode("ascii","ignore")
+			contents=str(td.a.contents[0])
 			#have to watch out for the pesky "more link" at bottom of screen
 			if (contents!='More'):
-				url=td.a['href'].encode('ascii','ignore')
+				url=td.a['href']
 				links.append({"title":contents,"url":url})
 	return links
 
@@ -22,8 +21,7 @@ def parseSubtext(children):
 	pts_str=children[0].contents[0]
 	pts=pts_str.split()[0]
 	pts=int(pts)
-	user=children[1].contents[0].__unicode__()
-	user=user.encode("ascii","ignore")
+	user=str(children[1].contents[0])
 	comments_str=children[2].contents[0]
 	comments_arr=comments_str.split()
 	comments=0
@@ -85,14 +83,17 @@ def getQueryStr(entry, pg_obj, table_name):
 
 def groom_for_query_str(val):
 	if (isinstance(val,unicode)):
-		raise CustomException("Encoding error.  nothing should ever be unicode")
+		print "encoding"
+		val=val.encode('ascii','ignore')
+
 	val=enquote_if_str(val)
-	val=str(val)
+	if(not isinstance(val,str)):
+		val=str(val)
 	return val
 
 
 def enquote_if_str(val):
-	if(isinstance(val,str)):
+	if(isinstance(val,str) or isinstance(val,unicode)):
 		return "$$"+val[:98]+"$$"
 	else:
 		return val
@@ -124,4 +125,4 @@ if __name__ == "__main__":
 		pg_obj.query(query_str)
 	if debug:
 		print pg_obj.query("select * from hnposts")
-		getQueryStr(dummy_entry,pg_obj)
+#		getQueryStr(dummy_entry,pg_obj)
