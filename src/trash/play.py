@@ -1,3 +1,8 @@
+from BeautifulSoup import BeautifulSoup
+import pgdb
+import sys
+
+
 def extended_list(t):
 	rtnVal=[]
 	for x in t:
@@ -46,9 +51,9 @@ def get_subtexts(soup_doc):
 			raise CustomException("Parse error: subtext has children != 3")
 	return subtexts
 
-def getEntries():
+def getEntries(fname):
 	sys.path.append('../html')
-	f=open('../html/sampleHN.html', 'r')
+	f=open('../html/'+fname, 'r')
 	data_str="".join(f)
 	soup_doc=BeautifulSoup(data_str)
 	links=get_links(soup_doc)
@@ -66,44 +71,25 @@ def getEntries():
 		curDict={}
 		curDict.update(links[i])
 		curDict.update(subtexts[i])
-		entries.append(curDict)
+		vals=curDict.values()
+		groomed_vals=map(groom_for_query_str,vals)
+		entries.append(tuple(groomed_vals))
 	return entries
 
-def getQueryStr(entry, pg_obj, table_name):
-	qstr="INSERT INTO "+table_name+" "
-	qstr+="("
-	qstr+=", ".join(entry.keys())
-	qstr+=") "
-	qstr+="VALUES ("
-	#i should probabl groom the values elsewhere
-	qstr+=", ".join(map(groom_for_query_str, entry.values()))
-	qstr+=")"
-	return qstr
 
 
 def groom_for_query_str(val):
 	if (isinstance(val,unicode)):
-		print "encoding"
 		val=val.encode('ascii','ignore')
 
-	val=enquote_if_str(val)
 	if(not isinstance(val,str)):
 		val=str(val)
-	return val
+	return val[:100]
 
 
-def enquote_if_str(val):
-	if(isinstance(val,str) or isinstance(val,unicode)):
-		return "$$"+val[:98]+"$$"
-	else:
-		return val
 
 
 if __name__ == "__main__":
-	from BeautifulSoup import BeautifulSoup
-	import pg
-	import sys
-
 	debug=True
 
 	#connect to:
@@ -114,15 +100,24 @@ if __name__ == "__main__":
 	host_name="localhost"
 	table_name="hnposts"
 	db_passwd="foo"
+	fname=sys.argv[1]
 	
-	pg_obj=pg.connect(dbname=db_name, host=host_name, passwd=db_passwd)
+	pg_obj=pgdb.connect(dsn=host_name+":"+db_name, password=db_passwd)
+	insert_cursor=pg_obj.cursor()
 
-	entries = getEntries()
-	for e in entries:
-		query_str=getQueryStr(e,pg_obj,table_name)
-		if debug:
-			print query_str
-		pg_obj.query(query_str)
-	if debug:
-		print pg_obj.query("select * from hnposts")
-#		getQueryStr(dummy_entry,pg_obj)
+	entries = getEntries(fname)
+#	for e in entries:
+#		query_str=getQueryStr(e,pg_obj,table_name)
+#		if debug:
+#			print query_str
+#		pg_obj.query(query_str)
+#	print entries[0].keys()
+
+	insert_cursor.executemany("insert into "+table_name+"(url, username,score,comments,title,timestamp) VALUES (%s,%s,%s,%s,%s,now())",entries)
+	insert_cursor.execute("select * from "+table_name)
+	#insert_cursor.execute("truncate table hnposts")
+	pg_obj.commit()
+	#print insert_cursor.fetchall()
+	#print insert_cursor.rowcount
+	insert_cursor.close()
+	pg_obj.close()

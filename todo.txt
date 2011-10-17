@@ -1,0 +1,3 @@
+TODO:
+1.  Exception handling for failure of wget, parse errors
+unit testing
