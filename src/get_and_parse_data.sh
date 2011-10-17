@@ -1,4 +1,6 @@
 #!/bin/bash
+#for HOURLY updates, use CRONTAB -e:
+#0 * * * * ~/Programs/python/hnproj/src/get_and_parse_data.sh
 cd ~/Programs/python/hnproj/src
 source ../bin/activate
 HNURL="http://news.ycombinator.com"
