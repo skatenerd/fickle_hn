@@ -1,6 +1,5 @@
 from BeautifulSoup import BeautifulSoup
 from pgutils import *
-import pgdb
 import sys
 
 
