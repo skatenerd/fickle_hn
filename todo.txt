@@ -3,3 +3,4 @@ TODO:
 2.  unit testing
 3.  script for adding columns to hnposts table
 4.  multiple pages?
+5.  use argparse!
