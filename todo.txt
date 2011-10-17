@@ -1,3 +1,5 @@
 TODO:
 1.  Exception handling for failure of wget, parse errors
-unit testing
+2.  unit testing
+3.  script for adding columns to hnposts table
+4.  multiple pages?

@@ -2,3 +2,17 @@ how fickle is hackernews?
 when is it fickle?
 which variables are important?
 what interesting things can i find?
+
+
+to set up, you should probably do the following:
+get easy_install
+easy_install virtualenv
+set up virtualenv
+move contents of "fickle_hn/src" to your "/src"
+activate easy_install 
+easy_install beautifulsoup and pygresql
+
+also, set up a postgres database HNDB with table hnposts.
+a script for adding relevant columns is forthcoming
+
+also, you might set up the relevant crontab
